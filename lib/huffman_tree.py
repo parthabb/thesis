@@ -2,6 +2,7 @@
 
 __author__ = 'Partha Baruah (parthabb@gmail.com)'
 
+import heapq
 import json
 import math
 import os
@@ -23,6 +24,7 @@ class HuffmanTree (lib.Singleton):
         '1': 'right'
     }
     MATH_POW = {}
+    PRODUCT = {}
 
     def __init__(self):
         self._root = node_def.Node(is_root=True)
@@ -45,25 +47,42 @@ class HuffmanTree (lib.Singleton):
                 self._hamming_dict[filename.split('.')[0]] = (
                     rfptr.read().split(','))
 
-    def decode(self, bit_stream):
+    def decode(self, bit_stream, error_pb):
         """Decode the bit_stream."""
         if not self._encoded_word_count.get(bit_stream):
-            restored_word = ''
-            max_prob = 0
+            heap = []
             for x in self._hamming_dict[str(len(bit_stream))]:
                 dis = lib.hamming_distance(bit_stream, x)
+                if dis > 2 and len(heap) > 0:
+                    continue
                 wcount = self._encoded_word_count[x]
-                temp = HuffmanTree.MATH_POW.get((wcount, dis))
-   
-                if temp == None:
-                    temp = math.pow(wcount, dis)
-                    HuffmanTree.MATH_POW[(wcount, dis)] = temp
-   
-                if temp >= max_prob:
-                    max_prob = temp
-                    restored_word = x
+
+                flip_pb = HuffmanTree.MATH_POW.get((error_pb, dis))
  
-            bit_stream = restored_word
+                non_flip_pb = HuffmanTree.MATH_POW.get((1.0 - error_pb),
+                                                       (len(bit_stream) - dis))
+
+                product = HuffmanTree.PRODUCT.get(
+                    (flip_pb, non_flip_pb, wcount))
+
+                if flip_pb == None:
+                    flip_pb = math.pow(error_pb, dis)
+                    HuffmanTree.MATH_POW[(error_pb, dis)] = flip_pb
+
+                if non_flip_pb == None:
+                    non_flip_pb = math.pow((1.0 - error_pb),
+                                           (len(bit_stream) - dis))
+                    HuffmanTree.MATH_POW[
+                        ((1.0 - error_pb),
+                         (len(bit_stream) - dis))] = non_flip_pb
+
+                if product == None:
+                    product = flip_pb * non_flip_pb * wcount * (-1.0)
+                    HuffmanTree.PRODUCT[
+                        (flip_pb, non_flip_pb, wcount)] = product
+
+                heapq.heappush(heap, (product, x))
+            bit_stream = heapq.heappop(heap)[1]
 
         word = []
         node = self._root

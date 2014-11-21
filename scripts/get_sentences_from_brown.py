@@ -11,9 +11,11 @@ from nltk.corpus import brown
 
 sentences = []
 for sents in brown.sents(categories=brown.categories()):
-    sentence = str(' '.join(sents)).translate(
-        string.maketrans("",""), string.punctuation).lower().replace(
-        '  ', ' ').strip()
+    words = []
+    for x in sents:
+        words.append(x.strip())
+    sentence = ' '.join(str(' '.join(words)).translate(
+        string.maketrans("",""), string.punctuation).lower().split())
     if re.match(r'[A-Za-z ]+$', sentence):
         sentences.append(sentence)
 
