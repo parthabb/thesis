@@ -6,6 +6,7 @@ import heapq
 import json
 import math
 import os
+import pickle
 
 import lib
 from lib import constants
@@ -47,7 +48,10 @@ class HuffmanTree (lib.Singleton):
                 self._hamming_dict[filename.split('.')[0]] = (
                     rfptr.read().split(','))
 
-    def decode(self, bit_stream, error_pb):
+        with open(constants.DATA_PATH % 'bigram.probs', 'r') as rfptr:
+            self.bigram_pb = pickle.loads(rfptr.read())
+
+    def decode(self, bit_stream, prev_word, error_pb):
         """Decode the bit_stream."""
         if not self._encoded_word_count.get(bit_stream):
             heap = []
@@ -55,32 +59,33 @@ class HuffmanTree (lib.Singleton):
                 dis = lib.hamming_distance(bit_stream, x)
                 if dis > 2 and len(heap) > 0:
                     continue
-                wcount = self._encoded_word_count[x]
-
-                flip_pb = HuffmanTree.MATH_POW.get((error_pb, dis))
+#                 wcount = self._encoded_word_count[x]
+                wcount = self.bigram_pb.get((prev_word, x), 0.0)
  
+                flip_pb = HuffmanTree.MATH_POW.get((error_pb, dis))
+  
                 non_flip_pb = HuffmanTree.MATH_POW.get((1.0 - error_pb),
                                                        (len(bit_stream) - dis))
-
+ 
                 product = HuffmanTree.PRODUCT.get(
                     (flip_pb, non_flip_pb, wcount))
-
+ 
                 if flip_pb == None:
                     flip_pb = math.pow(error_pb, dis)
                     HuffmanTree.MATH_POW[(error_pb, dis)] = flip_pb
-
+ 
                 if non_flip_pb == None:
                     non_flip_pb = math.pow((1.0 - error_pb),
                                            (len(bit_stream) - dis))
                     HuffmanTree.MATH_POW[
                         ((1.0 - error_pb),
                          (len(bit_stream) - dis))] = non_flip_pb
-
+ 
                 if product == None:
                     product = flip_pb * non_flip_pb * wcount * (-1.0)
                     HuffmanTree.PRODUCT[
                         (flip_pb, non_flip_pb, wcount)] = product
-
+ 
                 heapq.heappush(heap, (product, x))
             bit_stream = heapq.heappop(heap)[1]
 
@@ -91,7 +96,7 @@ class HuffmanTree (lib.Singleton):
             if node.is_leaf:
                 word.append(node.value)
                 node = self._root
-        return ''.join(word)
+        return ''.join(word), bit_stream
 
     def encode(self, word):
         """Encode the word."""

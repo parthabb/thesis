@@ -2,7 +2,6 @@
 
 import cProfile
 import json
-import Queue
 import threading
 import time
 
@@ -56,24 +55,24 @@ class app (object):
         for t in threads:
             t.join()
 
-            decoded_array = []
-            for word in error_array:
-#             for word in encoded_array:
-                now = time.time()
-                decoded_word = ht.decode(word, error_pb)
-                time_taken += time.time() - now
-                decoded_array.append(decoded_word)
+#             decoded_array = []
+#             for word in error_array:
+# #             for word in encoded_array:
+#                 now = time.time()
+#                 decoded_word = ht.decode(word, error_pb)
+#                 time_taken += time.time() - now
+#                 decoded_array.append(decoded_word)
  
-            decoded_str = ' '.join(decoded_array)
+#             decoded_str = ' '.join(decoded_array)
 #             print val
 #             print decoded_str
- 
-            if val.lower() == decoded_str:
-#                 print 'Correct'
-                correct += 1
-            else:
-#                 print 'wrong'
-                wrong += 1
+
+#             if val.lower() == decoded_str:
+# #                 print 'Correct'
+#                 correct += 1
+#             else:
+# #                 print 'wrong'
+#                 wrong += 1
  
 #             print val.lower()
 #             print ' '.join(decoded_array)
@@ -86,24 +85,25 @@ class app (object):
         print 'correct: %s' % correct
         print 'wrong: %s' % wrong
 
-#     @staticmethod
-#     def decode(ht, error_array, val, error_pb, correctq, errorq):
-#         decoded_array = []
-#         for word in error_array:
-# #             for word in encoded_array:
-#             decoded_word = ht.decode(word, error_pb)
-#             decoded_array.append(decoded_word)
-# 
-#         decoded_str = ' '.join(decoded_array)
-# #             print val
-# #             print decoded_str
-# 
-#         if val.lower() == decoded_str:
-# #                 print 'Correct'
-#             correctq.append(1)
-#         else:
-# #                 print 'wrong'
-#             errorq.append(1)
+    @staticmethod
+    def decode(ht, error_array, val, error_pb, correctq, errorq):
+        decoded_array = []
+        prev_word = '*'
+        for word in error_array:
+#             for word in encoded_array:
+            decoded_word, prev_word = ht.decode(word, prev_word, error_pb)
+            decoded_array.append(decoded_word)
+ 
+        decoded_str = ' '.join(decoded_array)
+#             print val
+#             print decoded_str
+ 
+        if val.lower() == decoded_str:
+#                 print 'Correct'
+            correctq.append(1)
+        else:
+#                 print 'wrong'
+            errorq.append(1)
 
 
 if __name__ == '__main__':

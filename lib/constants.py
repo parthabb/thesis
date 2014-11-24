@@ -42,3 +42,6 @@ HUFFMAN_CODES = {
     'y': '101001',
     'z': '11000010100',
 }
+
+# Start and Stop params for use in bigram and trigram ML
+PAD_SYMBOL = '*'
