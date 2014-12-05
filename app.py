@@ -27,7 +27,6 @@ class app (object):
 
         now = time.time()
         other = 0.0
-        print sentences[0]
         for val in sentences[:1]:
 #         for _ in range(1):
             other_time = time.time()
@@ -65,7 +64,6 @@ class app (object):
             decoded_array.append(ht.decode(word))
  
         decoded_str = ' '.join(decoded_array)
-        print decoded_str
  
         if val.lower() == decoded_str:
             correctq.append(1)
