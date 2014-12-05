@@ -14,7 +14,9 @@ for sents in brown.sents(categories=brown.categories()):
     words = []
     for x in sents:
         words.append(x.strip())
-    sentence = ' '.join(str(' '.join(words)).translate(
+    sentence = str(' '.join(words))
+    sentence = sentence.replace('-', ' ')
+    sentence = ' '.join(sentence.translate(
         string.maketrans("",""), string.punctuation).lower().split())
     if re.match(r'[A-Za-z ]+$', sentence):
         sentences.append(sentence)
