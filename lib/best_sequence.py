@@ -60,7 +60,7 @@ class BestSequence(lib.Singleton):
                 for x in self._hamming_dict[str(len(bit_stream))]:
                     dis = lib.hamming_distance(bit_stream, x)
                     if dis > 2 and len(heap) > 0:
-                        break
+                        continue
     #                 wcount = self._encoded_word_count[x]
                     wcount = self.bigram_pb.get((prev_word, x), 0.0)
     
