@@ -18,7 +18,7 @@ ht = huffman_tree.HuffmanTree()
 
 # A dict with a bag of tags for each word.
 words = {}
-words_huffman_excoded = {}  # A dict with a bag of tags for each huffman encoded word.
+words_huffman_encoded = {}  # A dict with a bag of tags for each huffman encoded word.
 
 # All raw text of brown corpus.
 txt = brown.raw()
@@ -43,12 +43,10 @@ for tagged_sentence in tagged_sentences:
         tags = words.get(word[0].lower(), set())
         tags.add(word[1])
         words[word[0].lower()] = tags
-        words_huffman_excoded[ht.encode(word[0].lower())] = tags
+        words_huffman_encoded[ht.encode(word[0].lower())] = tags  # [<encoded_word>] = Set of all tags for that word.
 
 with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'w') as fptr:
-    fptr.write(cPickle.dumps(words_huffman_excoded))
-
-
+    fptr.write(cPickle.dumps(words_huffman_encoded))
 
 
 word_count_by_bag_of_tags = {}
@@ -77,7 +75,7 @@ for bot, word_dict in word_count_by_bag_of_tags.items():
 
 word_count_by_bag_of_tags_huffman = {}
 
-for word, bot in words_huffman_excoded.items():
+for word, bot in words_huffman_encoded.items():
     bot = tuple(bot)  # Convert set to tuple.
     word_dict = word_count_by_bag_of_tags_huffman.get(bot, {})
     count = word_dict.get(word, 0.0)
@@ -85,15 +83,15 @@ for word, bot in words_huffman_excoded.items():
     word_dict[word] = count
     word_count_by_bag_of_tags_huffman[bot] = word_dict
 
-word_freq_bot_hufman = {}
+word_prob_per_bot_huffman = {}  # Probability of word in a Bag of Tags. 
 for bot, word_dict in word_count_by_bag_of_tags_huffman.items():
     total = sum(word_dict.values())
     for word, count in word_dict.items():
         word_dict[word] = count / total
-    word_freq_bot_hufman[bot] = word_dict
+    word_prob_per_bot_huffman[bot] = word_dict
 
 with open(constants.DATA_PATH % 'word_freq_per_bag_of_tag.hufman', 'w') as fptr:
-    fptr.write(cPickle.dumps(word_freq_bot_hufman))
+    fptr.write(cPickle.dumps(word_prob_per_bot_huffman))
 
 
 
@@ -123,6 +121,7 @@ fdist_bgs = nltk.FreqDist(bgs)
 
 probs = {}
 for sample, count in fdist_bgs.items():
+    # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_1>.
     probs[sample] = count / float(fdist_ugs.get(sample[1]))
 
 

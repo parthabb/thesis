@@ -29,7 +29,8 @@ fdist_ug = nltk.FreqDist(ugs)
 fdist_bg = nltk.FreqDist(bgs)
 
 ht = huffman_tree.HuffmanTree()
- 
+
+# prob[(<huffman_encoded_word_1>, <huffman_encoded_word_2>)] = P[(<huffman_encoded_word_1>, <huffman_encoded_word_2>) / <huffman_encoded_word_1>)]
 prob = {}
 count = 1
 

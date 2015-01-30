@@ -27,7 +27,8 @@ class app (object):
 
         now = time.time()
         other = 0.0
-        for val in sentences[:1]:
+        no_error = 0
+        for val in sentences[:17000]:
 #         for _ in range(1):
             other_time = time.time()
             encoded_array = []
@@ -37,6 +38,8 @@ class app (object):
             error_array = []
             for bit_stream in encoded_array:
                 error_array.append(lib.add_error(bit_stream, error_pb))
+            if error_array == encoded_array:
+                no_error += 1
             other += time.time() - other_time
 
             t = threading.Thread(target=app.decode,
@@ -50,8 +53,9 @@ class app (object):
             t.join()
 
         print '=================time taken================='
+        print no_error
         print time.time() - now - other
-#         print (time.time() - now - other) / 17000.0
+        print (time.time() - now - other) / 17000.0
         print len(correctq) + len(errorq)
         print 'correct: %s' % sum(correctq)
         print 'wrong: %s' % sum(errorq)
@@ -59,12 +63,12 @@ class app (object):
     @staticmethod
     def decode(ht, bs, error_array, val, error_pb, correctq, errorq):
         decoded_array = []
-        correct_array = bs.get_best_sequence(error_array, error_pb)
+        correct_array = bs.get_best_sequence_ug(error_array, error_pb)
         for word in correct_array:
             decoded_array.append(ht.decode(word))
- 
+
         decoded_str = ' '.join(decoded_array)
- 
+
         if val.lower() == decoded_str:
             correctq.append(1)
         else:
