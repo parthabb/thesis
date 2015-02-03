@@ -31,5 +31,12 @@ for sample in fdist_ug.keys():
     w1 = ht.encode(sample)
     prob[w1] = fdist_ug.get(sample) / total_words
 
+###############################################################################
+##
+# File: ugram.probs
+# Format: prob[(<huffman_encoded_word_1>)] = P[(<huffman_encoded_word_1>)]
+##
+###############################################################################
+
 with open(constants.DATA_PATH % 'ugram.probs', 'w') as wfptr:
     wfptr.write(cPickle.dumps(prob))

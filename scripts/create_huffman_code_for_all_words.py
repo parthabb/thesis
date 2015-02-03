@@ -3,20 +3,24 @@
 __author__ = 'Partha Baruah (parthabb@gmail.com)'
 
 import json
-import os
-import re
 
 from lib import constants
 from lib import huffman_tree
 
+###############################################################################
+##
+# File name: <word_len>.code_length
+# Format: word1, word2, word3, ...
+##
+###############################################################################
 
 def create_huffman():
-    """Create their Huffman codes for words in wsd_paper_1_imp/senses."""
+    """Create their Huffman codes for words in words.count."""
     huffman_code_lengths = {}
     ht = huffman_tree.HuffmanTree()
     with open(constants.DATA_PATH % 'words.count', 'r') as rfptr:
         all_words = json.loads(rfptr.read())
-        for word, count in all_words.iteritems():
+        for word, _ in all_words.iteritems():
             if word.isdigit():
                 continue
             encoded_word = ht.encode(word)

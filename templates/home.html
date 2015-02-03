@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<form method='post' action='correct'>
+  <div>
+    <label for='test_data'>Enter the test data.</label>
+  </div>
+  <div>
+    <textarea name='test_data' rows=10 cols=100>{% if test_data %}{{ test_data }}{% endif %}</textarea>
+  </div>
+  <div>
+    <label for='ber'>Bit Error Rate</label>
+  </div>
+  <div>
+    <input type='text' name='ber' value="{% if ber %}{{ ber }}{% endif %}"/>
+  </div>
+  <div>
+    <button type='submit'>Submit</button>
+  </div>
+</form>
+{% if results %}
+<hr></hr>
+{% include 'results.html' %}
+{% endif %}
+{% endblock %}
+

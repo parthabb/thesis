@@ -44,7 +44,6 @@ def organize_probs(w1, w2):
 threads = []
 
 for sample in fdist_bg.keys():
-    print count
     organize_probs(sample[0], sample[1])
     t = threading.Thread(target=organize_probs, args=sample)
     t.daemon = True
@@ -54,6 +53,14 @@ for sample in fdist_bg.keys():
 
 for t in threads:
     t.join()
+
+###############################################################################
+##
+# File: bigram.probs
+# probability of word2 following word1 appearing together given word1
+# Format: prob[(<huffman_encoded_word_1>, <huffman_encoded_word_2>)] = P[(<huffman_encoded_word_1>, <huffman_encoded_word_2>) / <huffman_encoded_word_1>)]
+##
+###############################################################################
 
 with open(constants.DATA_PATH % 'bigram.probs', 'w') as wfptr:
     wfptr.write(cPickle.dumps(prob))

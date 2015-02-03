@@ -48,13 +48,15 @@ def get_word_count (words):
     return words
 
 
-def clean_data(text):
+def clean_data(sents):
     """Function to clean the data from the corpus files."""
-    text = text.split('/')
-    if not text:
-        return ''
-    text = text[0].split('\'')[0]
-    return text.translate(string.maketrans("",""), string.punctuation).lower()
+    words = []
+    for x in sents:
+        words.append(x.strip())
+    sentence = str(' '.join(words))
+    sentence = sentence.replace('-', ' ')
+    return ' '.join(sentence.translate(
+        string.maketrans("",""), string.punctuation).lower().split())
 
 
 def add_error(bitstream, p):

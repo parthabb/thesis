@@ -7,7 +7,6 @@ import heapq
 import json
 import math
 import os
-import pickle
 
 
 import lib
@@ -44,14 +43,14 @@ class BestSequence(lib.Singleton):
         with open(constants.DATA_PATH % 'bigram.probs', 'r') as rfptr:
             self.bigram_pb = cPickle.loads(rfptr.read())  # For Data Structure refer calculate_bigram_probabilities.py.
 
-        with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
-            self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-
-        with open(constants.DATA_PATH % 'word_freq_per_bag_of_tag.hufman', 'r') as fptr:
-            self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-
-        with open(constants.DATA_PATH % 'bag_of_tag.prob', 'r') as fptr:
-            self.bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+#         with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
+#             self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+# 
+#         with open(constants.DATA_PATH % 'word_freq_per_bag_of_tag.hufman', 'r') as fptr:
+#             self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+# 
+#         with open(constants.DATA_PATH % 'bag_of_tag.prob', 'r') as fptr:
+#             self.bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
 
     # Unigram frequencies
     def get_best_sequence_ug(self, error_array, error_pb):
