@@ -43,46 +43,45 @@ for tagged_sentence in tagged_sentences:
         tags = words.get(word[0].lower(), set())
         tags.add(word[1])
         words[word[0].lower()] = tags
-        words_huffman_encoded[ht.encode(word[0].lower())] = tags  # [<encoded_word>] = Set of all tags for that word.
+        # [<encoded_word>] = Set of all tags for that word.
+        words_huffman_encoded[ht.encode(word[0].lower())] = tuple(tags)
 
 with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'w') as fptr:
     fptr.write(cPickle.dumps(words_huffman_encoded))
 
 
+# For each bag of tag, count the words in that bag of tag.
 word_count_by_bag_of_tags = {}
 
 for word, bot in words.items():
-    bot = tuple(bot)  # Convert set to tuple.
+    bot = tuple(bot)
     word_dict = word_count_by_bag_of_tags.get(bot, {})
     count = word_dict.get(word, 0.0)
     count += 1.0
     word_dict[word] = count
     word_count_by_bag_of_tags[bot] = word_dict
 
-# print word_count_by_bag_of_tags
+# For each bag of tag, calculate the probability of the words in that bag of tag
+word_prob_per_bot = {}
 
-word_freq_bot = {}
 for bot, word_dict in word_count_by_bag_of_tags.items():
     total = sum(word_dict.values())
     for word, count in word_dict.items():
         word_dict[word] = count / total
-    word_freq_bot[bot] = word_dict
+    word_prob_per_bot[bot] = word_dict
 
-# print word_freq_bot
-
-
-
-
+# For each bag of tag, count the words in that bag of tag, words in huffman code
 word_count_by_bag_of_tags_huffman = {}
 
 for word, bot in words_huffman_encoded.items():
-    bot = tuple(bot)  # Convert set to tuple.
     word_dict = word_count_by_bag_of_tags_huffman.get(bot, {})
     count = word_dict.get(word, 0.0)
     count += 1.0
     word_dict[word] = count
     word_count_by_bag_of_tags_huffman[bot] = word_dict
 
+# For each bag of tag, calculate the probability of the words in that bag of tag
+# Words are in huffman code.
 word_prob_per_bot_huffman = {}  # Probability of word in a Bag of Tags. 
 for bot, word_dict in word_count_by_bag_of_tags_huffman.items():
     total = sum(word_dict.values())
@@ -90,10 +89,8 @@ for bot, word_dict in word_count_by_bag_of_tags_huffman.items():
         word_dict[word] = count / total
     word_prob_per_bot_huffman[bot] = word_dict
 
-with open(constants.DATA_PATH % 'word_freq_per_bag_of_tag.hufman', 'w') as fptr:
+with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'w') as fptr:
     fptr.write(cPickle.dumps(word_prob_per_bot_huffman))
-
-
 
 
 clean_sentences = []
@@ -109,10 +106,9 @@ for clean_sentence in clean_sentences:
             temp.append(json.dumps(tuple(words[word.lower()])))
     if len(temp) == 0:
         continue
-    clean_sentence = 'nlp'.join(temp)
     ugs.append(constants.PAD_SYMBOL)
     ugs.extend(temp)
-    bgs.extend(list(ngrams(clean_sentence.split('nlp'), n=2, pad_left=True,
+    bgs.extend(list(ngrams(temp, n=2, pad_left=True,
                            pad_right=False,
                            pad_symbol=constants.PAD_SYMBOL)))
 
@@ -122,8 +118,17 @@ fdist_bgs = nltk.FreqDist(bgs)
 probs = {}
 for sample, count in fdist_bgs.items():
     # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_1>.
+    probs[sample] = count / float(fdist_ugs.get(sample[0]))
+
+
+with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'w') as fptr:
+    fptr.write(cPickle.dumps(probs))
+
+probs = {}
+for sample, count in fdist_bgs.items():
+    # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_1>.
     probs[sample] = count / float(fdist_ugs.get(sample[1]))
 
 
-with open(constants.DATA_PATH % 'bag_of_tag.prob', 'w') as fptr:
+with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'w') as fptr:
     fptr.write(cPickle.dumps(probs))

@@ -15,12 +15,12 @@ sentences = []
 with open(constants.DATA_PATH % 'brown.sentences', 'r') as rfptr:
     sentences.extend(json.loads(rfptr.read()))
 
-ugs = [constants.PAD_SYMBOL]
+ugs = []
 
 bgs = []
 for sentence in sentences:
-    ugs.extend(sentence.split())
     ugs.append(constants.PAD_SYMBOL)
+    ugs.extend(sentence.split())
     bgs.extend(list(ngrams(sentence.split(), n=2, pad_left=True,
                            pad_right=False,
                            pad_symbol=constants.PAD_SYMBOL)))
@@ -44,7 +44,6 @@ def organize_probs(w1, w2):
 threads = []
 
 for sample in fdist_bg.keys():
-    organize_probs(sample[0], sample[1])
     t = threading.Thread(target=organize_probs, args=sample)
     t.daemon = True
     threads.append(t)

@@ -16,6 +16,7 @@ with open(constants.DATA_PATH % 'brown.sentences', 'r') as rfptr:
 ugs = []
 
 for sentence in sentences:
+    ugs.append(constants.PAD_SYMBOL)
     ugs.extend(sentence.split())
 
 fdist_ug = nltk.FreqDist(ugs)
@@ -24,7 +25,6 @@ ht = huffman_tree.HuffmanTree()
 
 # prob[(<huffman_encoded_word_1>)] = P[(<huffman_encoded_word_1>)]
 prob = {}
-count = 1
 total_words = len(ugs) * 1.0
 
 for sample in fdist_ug.keys():

@@ -68,7 +68,7 @@ def add_error_and_correct (text, error_pb):
 def decode(ht, bs, error_array, encoded_array, error_pb, corrected_text,
            correctq, errorq):
     decoded_array = []
-    correct_array = bs.get_best_sequence_g(error_array, error_pb)
+    correct_array = bs.get_best_sequence_true_hmm(error_array, error_pb)
     if encoded_array == correct_array:
         correctq.append(1)
     else:
