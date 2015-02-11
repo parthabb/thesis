@@ -59,13 +59,14 @@ def clean_data(sents):
         string.maketrans("",""), string.punctuation).lower().split())
 
 
-def add_error(bitstream, p):
+def add_error(bitstream, p, nob):
     """Flips the bits in the bit stream with a probability p."""
     random.seed()
     new_bitstream = []
     for bit in bitstream:
         val = random.random()
-        if val < p:
+        if val < p and nob > 0:
+            nob = nob - 1
             if bit == '1':
                 bit = '0'
             else:
@@ -95,3 +96,21 @@ def filter_by_hamming_distance(bitstream):
         dist = hamming_distance(bitstream, word)
         selected_words.append((word, dist))
     return selected_words
+
+
+def get_possible_words (bit_stream, dis, index=None, dp=None):
+    """Get all possible words which are dis bit-flips away from bit_stream."""
+    # Implement in Dynamic programming.
+    possible_words = [bit_stream]
+    if dis <= 0 or len(bit_stream) == 0:
+        return possible_words
+    bit = '1'
+    if bit_stream[0] == '1':
+        bit = '0'
+    words = get_possible_words(bit_stream[1:], dis - 1)  # flip current bit.
+    for word in words:
+        possible_words.append(bit + word)
+    words = get_possible_words(bit_stream[1:], dis)  # don't flip current bit.
+    for word in words:
+        possible_words.append(bit_stream[0] + word)
+    return possible_words

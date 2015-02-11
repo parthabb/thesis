@@ -28,7 +28,8 @@ prob = {}
 total_words = len(ugs) * 1.0
 
 for sample in fdist_ug.keys():
-    w1 = ht.encode(sample)
+    if sample != constants.PAD_SYMBOL:
+        w1 = ht.encode(sample)
     prob[w1] = fdist_ug.get(sample) / total_words
 
 ###############################################################################

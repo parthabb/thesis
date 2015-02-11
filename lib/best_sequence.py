@@ -43,58 +43,62 @@ class BestSequence(lib.Singleton):
         with open(constants.DATA_PATH % 'bigram.probs', 'r') as rfptr:
             self.bigram_pb = cPickle.loads(rfptr.read())  # For Data Structure refer calculate_bigram_probabilities.py.
 
-        with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
-            self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
- 
-        with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'r') as fptr:
-            self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
- 
-        with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'r') as fptr:
-            self.bag_of_tag_prob_prev = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
- 
-        with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'r') as fptr:
-            self.bag_of_tag_prob_next = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+#         with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
+#             self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+#  
+#         with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'r') as fptr:
+#             self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+#  
+#         with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'r') as fptr:
+#             self.bag_of_tag_prob_prev = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+#  
+#         with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'r') as fptr:
+#             self.bag_of_tag_prob_next = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
 
     # Unigram frequencies
     def get_best_sequence_ug(self, error_array, error_pb):
         """Get the best sequence."""
         decoded_array = []
         for bit_stream in error_array:
-            if not self._encoded_word_count.get(bit_stream):
-                heap = []
-                for x in self._bit_len_dict[str(len(bit_stream))]:
-                    dis = lib.hamming_distance(bit_stream, x)
-                    if dis > 2 and len(heap) > 0:
-                        continue
-                    wcount = self.ugram_pb.get((x), 0.0)
+#             if self._encoded_word_count.get(bit_stream):
+#                 decoded_array.append(bit_stream)
+#                 continue
+            dis = 2
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
 
-                    flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
+            heap = []
+            for x in possible_words:
+                dis = lib.hamming_distance(bit_stream, x)
+                wcount = self.ugram_pb.get((x), 0.0)
 
-                    non_flip_pb = BestSequence.MATH_POW.get(
-                        (1.0 - error_pb), (len(bit_stream) - dis))
+                flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
 
-                    product = BestSequence.PRODUCT.get(
-                        (flip_pb, non_flip_pb, wcount))
+                non_flip_pb = BestSequence.MATH_POW.get(
+                    (1.0 - error_pb), (len(bit_stream) - dis))
 
-                    if flip_pb == None:
-                        flip_pb = math.pow(error_pb, dis)
-                        BestSequence.MATH_POW[(error_pb, dis)] = flip_pb
+                product = BestSequence.PRODUCT.get(
+                    (flip_pb, non_flip_pb, wcount))
 
-                    if non_flip_pb == None:
-                        non_flip_pb = math.pow((1.0 - error_pb),
-                                               (len(bit_stream) - dis))
-                        BestSequence.MATH_POW[
-                            ((1.0 - error_pb),
-                             (len(bit_stream) - dis))] = non_flip_pb
+                if flip_pb == None:
+                    flip_pb = math.pow(error_pb, dis)
+                    BestSequence.MATH_POW[(error_pb, dis)] = flip_pb
 
-                    if product == None:
-                        product = flip_pb * non_flip_pb * wcount * (-1.0)
-                        BestSequence.PRODUCT[
-                            (flip_pb, non_flip_pb, wcount)] = product
+                if non_flip_pb == None:
+                    non_flip_pb = math.pow((1.0 - error_pb),
+                                           (len(bit_stream) - dis))
+                    BestSequence.MATH_POW[
+                        ((1.0 - error_pb),
+                         (len(bit_stream) - dis))] = non_flip_pb
 
-                    heapq.heappush(heap, (product, x))
-                bit_stream = heapq.heappop(heap)[1]
-            decoded_array.append(bit_stream)
+                if product == None:
+                    product = flip_pb * non_flip_pb * wcount * (-1.0)
+                    BestSequence.PRODUCT[
+                        (flip_pb, non_flip_pb, wcount)] = product
+
+                heapq.heappush(heap, (product, x))
+            decoded_array.append(heapq.heappop(heap)[1])
         return decoded_array
 
     # Bigram frequencies
@@ -103,22 +107,85 @@ class BestSequence(lib.Singleton):
         prev_word = constants.PAD_SYMBOL
         decoded_array = []
         for bit_stream in error_array:
-            if not self._encoded_word_count.get(bit_stream):
-                heap = []
-                for x in self._bit_len_dict[str(len(bit_stream))]:
+#             if self._encoded_word_count.get(bit_stream):
+#                 prev_word = bit_stream
+#                 decoded_array.append(bit_stream)
+#                 continue
+            dis = 2
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
+
+            heap = []
+            for x in possible_words:
+                dis = lib.hamming_distance(bit_stream, x)
+                wcount = self.bigram_pb.get((prev_word, x), self.ugram_pb.get(x, 0.0))
+
+                flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
+
+                non_flip_pb = BestSequence.MATH_POW.get(
+                    (1.0 - error_pb), (len(bit_stream) - dis))
+
+                product = BestSequence.PRODUCT.get(
+                    (flip_pb, non_flip_pb, wcount))
+
+                if flip_pb == None:
+                    flip_pb = math.pow(error_pb, dis)
+                    BestSequence.MATH_POW[(error_pb, dis)] = flip_pb
+
+                if non_flip_pb == None:
+                    non_flip_pb = math.pow((1.0 - error_pb),
+                                           (len(bit_stream) - dis))
+                    BestSequence.MATH_POW[
+                        ((1.0 - error_pb),
+                         (len(bit_stream) - dis))] = non_flip_pb
+
+                if product == None:
+                    product = flip_pb * non_flip_pb * wcount * (-1.0)
+                    BestSequence.PRODUCT[
+                        (flip_pb, non_flip_pb, wcount)] = product
+
+                heapq.heappush(heap, (product, x))
+            prev_word = heapq.heappop(heap)[1]
+            decoded_array.append(prev_word)
+        return decoded_array
+
+    # Bigram frequencies
+    def get_best_sequence_dp(self, error_array, error_pb):
+        """Get the best sequence. Implemented in Dynamic programming."""
+        prev_word = constants.PAD_SYMBOL
+        prob_list = {prev_word: (1, [])}
+        for bit_stream in error_array:
+            if self._encoded_word_count.get(bit_stream):
+                maximum = 0
+                max_path = []
+                for prev_word, (prob, path) in prob_list.items():
+                    if prob > maximum:
+                        maximum = prob
+                        max_path = path
+                prob_list = {bit_stream: (1, max_path + [bit_stream])}
+                continue
+            dis = 2
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
+
+            temp = {}
+#             print '========================================'
+#             print prob_list
+#             print '========================================'
+            for prev_word, (prob, path) in prob_list.items():
+                for x in possible_words:
                     dis = lib.hamming_distance(bit_stream, x)
-                    if dis > 2 and len(heap) > 0:
-                        continue
-#                     wcount = self._encoded_word_count[x]
-                    wcount = self.bigram_pb.get((prev_word, x), 0.0)
+                    wcount = self.bigram_pb.get((prev_word, x), self.ugram_pb.get(x, 0.0))
 
                     flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
 
                     non_flip_pb = BestSequence.MATH_POW.get(
-                        (1.0 - error_pb), (len(bit_stream) - dis))
+                        ((1.0 - error_pb), (len(bit_stream) - dis)))
 
                     product = BestSequence.PRODUCT.get(
-                        (flip_pb, non_flip_pb, wcount))
+                        (flip_pb, non_flip_pb, wcount, prob))
 
                     if flip_pb == None:
                         flip_pb = math.pow(error_pb, dis)
@@ -132,67 +199,20 @@ class BestSequence(lib.Singleton):
                              (len(bit_stream) - dis))] = non_flip_pb
 
                     if product == None:
-                        product = flip_pb * non_flip_pb * wcount * (-1.0)
+                        if wcount == 0.0:
+                            wcount = 0.00001  # add a bias.
+                        product = flip_pb * non_flip_pb * wcount * prob
                         BestSequence.PRODUCT[
-                            (flip_pb, non_flip_pb, wcount)] = product
+                            (flip_pb, non_flip_pb, wcount, prob)] = product
+#                     print '==============================='
+#                     print error_pb
+#                     print wcount, flip_pb, non_flip_pb, product
+#                     print '==============================='
 
-                    heapq.heappush(heap, (product, x))
-                bit_stream = heapq.heappop(heap)[1]
-            decoded_array.append(bit_stream)
-            prev_word = bit_stream
-        return decoded_array
+                    if temp.get(x, (0, []))[0] <= product:
+                        temp[x] = (product, path + [x])
+            prob_list = temp
 
-    # Bigram frequencies
-    def get_best_sequence_dp(self, error_array, error_pb):
-        """Get the best sequence. Implemented in Dynamic programming."""
-        prev_word = constants.PAD_SYMBOL
-        prob_list = {prev_word: (1, [])}
-        for bit_stream in error_array:
-            if not self._encoded_word_count.get(bit_stream):
-                temp = {}
-                for prev_word, (prob, path) in prob_list.items():
-                    for x in self._bit_len_dict[str(len(bit_stream))]:
-                        dis = lib.hamming_distance(bit_stream, x)
-                        if dis > 2 and len(prob_list) > 0:
-                            continue
-#                         wcount = self._encoded_word_count[x]
-                        wcount = self.bigram_pb.get((prev_word, x), 0.0)
-
-                        flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
-
-                        non_flip_pb = BestSequence.MATH_POW.get(
-                            (1.0 - error_pb), (len(bit_stream) - dis))
-
-                        product = BestSequence.PRODUCT.get(
-                            (flip_pb, non_flip_pb, wcount))
-
-                        if flip_pb == None:
-                            flip_pb = math.pow(error_pb, dis)
-                            BestSequence.MATH_POW[(error_pb, dis)] = flip_pb
-
-                        if non_flip_pb == None:
-                            non_flip_pb = math.pow((1.0 - error_pb),
-                                                   (len(bit_stream) - dis))
-                            BestSequence.MATH_POW[
-                                ((1.0 - error_pb),
-                                 (len(bit_stream) - dis))] = non_flip_pb
-
-                        if product == None:
-                            product = flip_pb * non_flip_pb * wcount * prob
-                            BestSequence.PRODUCT[
-                                (flip_pb, non_flip_pb, wcount)] = product
-
-                        if temp.get(x, (0, []))[0] < product:
-                            temp[x] = (product, path + [x])
-                prob_list = temp
-            else:
-                maximum = 0
-                max_path = []
-                for prev_word, (prob, path) in prob_list.items():
-                    if prob > maximum:
-                        maximum = prob
-                        max_path = path
-                prob_list = {bit_stream: (1, max_path + [bit_stream])}
 
         maximum = 0
         max_path = []
@@ -214,34 +234,18 @@ class BestSequence(lib.Singleton):
         for bit_stream in error_array:
             temp = []
             pos += 1
-            if not self._encoded_word_count.get(bit_stream):
-                for x in self._bit_len_dict[str(len(bit_stream))]:
-                    bot = self.bag_of_tags_by_word.get(x, ())
-                    curr_state = (x, bot)
+            dis = 1
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
 
-                    dis = lib.hamming_distance(bit_stream, x)
-                    if dis > 2 and len(temp) > 0:
-                        continue
-                    temp.append(curr_state)
+            for x in possible_words:
+                bot = self.bag_of_tags_by_word.get(x, ())
+                curr_state = (x, bot)
 
-                    for prev_state in prev_states:  # option for parallelism.
-                        transition = self.bag_of_tag_prob_prev.get((
-                            prev_state[1], curr_state[1]), 0.0)
-                        emission = self.word_freq_per_bag_of_tag.get(
-                            curr_state[1], {}).get(curr_state[0], 0)
-                        state_prob = BestSequence.PRODUCT.get((transition,
-                                                               emission))
-                        if state_prob == None:
-                            state_prob = transition * emission
-                            BestSequence.PRODUCT[(transition, emission)] = (
-                                state_prob)
-
-                        prob_hmm_a[(prev_state,
-                                    curr_state, pos, bit_stream)] = state_prob
-            else:
-                bot = self.bag_of_tags_by_word.get(bit_stream, ())
-                curr_state = (bit_stream, bot)
+                dis = lib.hamming_distance(bit_stream, x)
                 temp.append(curr_state)
+
                 for prev_state in prev_states:  # option for parallelism.
                     transition = self.bag_of_tag_prob_prev.get((
                         prev_state[1], curr_state[1]), 0.0)
@@ -254,9 +258,8 @@ class BestSequence(lib.Singleton):
                         BestSequence.PRODUCT[(transition, emission)] = (
                             state_prob)
 
-                    prob_hmm_a[(prev_state, curr_state, pos,
-                                bit_stream)] = state_prob
-
+                    prob_hmm_a[(prev_state,
+                                curr_state, pos, bit_stream)] = state_prob
             prev_states = temp
 
         error_array_rev = []
@@ -271,33 +274,18 @@ class BestSequence(lib.Singleton):
         for bit_stream in error_array_rev[:-1]:
             temp = []
             pos -= 1
-            if not self._encoded_word_count.get(bit_stream):
-                for x in self._bit_len_dict[str(len(bit_stream))]:
-                    bot = self.bag_of_tags_by_word.get(x, ())
-                    curr_state = (x, bot)
+            dis = 1
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
 
-                    dis = lib.hamming_distance(bit_stream, x)
-                    if dis > 2 and len(temp) > 0:
-                        continue
-                    temp.append(curr_state)
+            for x in possible_words:
+                bot = self.bag_of_tags_by_word.get(x, ())
+                curr_state = (x, bot)
 
-                    for next_state in next_states:  # option for parallelism.
-                        transition = self.bag_of_tag_prob_next.get((
-                            next_state[1], curr_state[1]), 0.0)
-                        emission = self.word_freq_per_bag_of_tag.get(
-                            curr_state[1], {}).get(curr_state[0], 0)
-                        state_prob = BestSequence.PRODUCT.get((transition,
-                                                               emission))
-                        if state_prob == None:
-                            state_prob = transition * emission
-                            BestSequence.PRODUCT[(transition, emission)] = (
-                                state_prob)
-
-                        prob_hmm_b[(curr_state, next_state, pos)] = state_prob
-            else:
-                bot = self.bag_of_tags_by_word.get(bit_stream, ())
-                curr_state = (bit_stream, bot)
+                dis = lib.hamming_distance(bit_stream, x)
                 temp.append(curr_state)
+
                 for next_state in next_states:  # option for parallelism.
                     transition = self.bag_of_tag_prob_next.get((
                         next_state[1], curr_state[1]), 0.0)

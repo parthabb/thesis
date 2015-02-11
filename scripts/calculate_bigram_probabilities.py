@@ -32,7 +32,6 @@ ht = huffman_tree.HuffmanTree()
 
 # prob[(<huffman_encoded_word_1>, <huffman_encoded_word_2>)] = P[(<huffman_encoded_word_1>, <huffman_encoded_word_2>) / <huffman_encoded_word_1>)]
 prob = {}
-count = 1
 
 def organize_probs(w1, w2):
     temp = [w1, w2]
@@ -48,7 +47,6 @@ for sample in fdist_bg.keys():
     t.daemon = True
     threads.append(t)
     t.start()
-    count += 1
 
 for t in threads:
     t.join()

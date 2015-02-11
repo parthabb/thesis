@@ -38,7 +38,7 @@ def add_error_and_correct (text, error_pb):
 
         error_array = []
         for bit_stream in encoded_array:
-            error_array.append(lib.add_error(bit_stream, error_pb))
+            error_array.append(lib.add_error(bit_stream, error_pb, 2))
         if error_array == encoded_array:
             no_error += 1
 
@@ -68,7 +68,7 @@ def add_error_and_correct (text, error_pb):
 def decode(ht, bs, error_array, encoded_array, error_pb, corrected_text,
            correctq, errorq):
     decoded_array = []
-    correct_array = bs.get_best_sequence_true_hmm(error_array, error_pb)
+    correct_array = bs.get_best_sequence_dp(error_array, error_pb)
     if encoded_array == correct_array:
         correctq.append(1)
     else:
