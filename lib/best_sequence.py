@@ -45,13 +45,13 @@ class BestSequence(lib.Singleton):
 
 #         with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
 #             self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#  
+#   
 #         with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'r') as fptr:
 #             self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#  
+#   
 #         with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'r') as fptr:
 #             self.bag_of_tag_prob_prev = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#  
+#   
 #         with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'r') as fptr:
 #             self.bag_of_tag_prob_next = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
 
@@ -156,15 +156,15 @@ class BestSequence(lib.Singleton):
         prev_word = constants.PAD_SYMBOL
         prob_list = {prev_word: (1, [])}
         for bit_stream in error_array:
-            if self._encoded_word_count.get(bit_stream):
-                maximum = 0
-                max_path = []
-                for prev_word, (prob, path) in prob_list.items():
-                    if prob > maximum:
-                        maximum = prob
-                        max_path = path
-                prob_list = {bit_stream: (1, max_path + [bit_stream])}
-                continue
+#            if self._encoded_word_count.get(bit_stream):
+#                maximum = 0
+#                max_path = []
+#                for prev_word, (prob, path) in prob_list.items():
+#                    if prob > maximum:
+#                        maximum = prob
+#                        max_path = path
+#                prob_list = {bit_stream: (1, max_path + [bit_stream])}
+#                continue
             dis = 2
             possible_words = set(lib.get_possible_words(bit_stream, dis))
             actual_words = set(self._bit_len_dict[str(len(bit_stream))])
@@ -224,7 +224,7 @@ class BestSequence(lib.Singleton):
         return max_path
 
     def get_best_sequence_true_hmm(self, error_array, error_pb):
-        """Get the best sequence. Using True HMM and fb for each state."""
+        """Get the best sequence. Using True HMM and f-b for each state."""
         prev_word = constants.PAD_SYMBOL
         prob_hmm_a = {}
         pos = 0
