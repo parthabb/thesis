@@ -3,7 +3,7 @@
 __author__ = 'Partha Baruah (parthabb@gmail.com)'
 
 
-DATA_PATH = '/projects/researchv2/data/%s'
+DATA_PATH = '/projects/research_test/data/%s'
 
 
 STOP_WORDS = (

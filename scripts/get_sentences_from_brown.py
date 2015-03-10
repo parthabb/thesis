@@ -22,7 +22,7 @@ for sents in brown.sents(categories=brown.categories()):
 ###############################################################################
 
 test_data = sentences[:len(sentences) / 3]
-train_data = sentences[(len(sentences) / 3):]
+train_data = sentences[len(sentences) / 3:]
 
 with open(constants.DATA_PATH % 'brown.sentences', 'w') as wfptr:
     wfptr.write(json.dumps(train_data))

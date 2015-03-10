@@ -103,32 +103,95 @@ for clean_sentence in clean_sentences:
     temp = []
     for word in clean_sentence.split():
         if words.has_key(word.lower()):
-            temp.append(json.dumps(tuple(words[word.lower()])))
+            temp.append(tuple(words[word.lower()]))
     if len(temp) == 0:
         continue
     ugs.append(constants.PAD_SYMBOL)
-    ugs.extend(temp)
-    bgs.extend(list(ngrams(temp, n=2, pad_left=True,
+    ugs.extend(tuple(temp))
+    bgs.extend(list(ngrams(tuple(temp), n=2, pad_left=True,
                            pad_right=False,
                            pad_symbol=constants.PAD_SYMBOL)))
 
 fdist_ugs = nltk.FreqDist(ugs)
+total_bots = len(fdist_ugs)
+
+all_bgs = set()
+for ug1 in fdist_ugs.keys():
+    for ug2 in fdist_ugs.keys():
+        all_bgs.add((ug1, ug2))
+
 fdist_bgs = nltk.FreqDist(bgs)
 
-probs = {}
-for sample, count in fdist_bgs.items():
+# Probability of each bot with frequency 1 or less are made equal.
+UNKNOWN_BOTS = {}
+for k in all_bgs:
+    if fdist_bgs.get(k, 0.0) < 2:
+        UNKNOWN_BOTS[k] = 1
+
+# Implement kneser-ney smoothing.
+
+# Total bigrams with frequency greater than 0.
+total_bgs_with_frequency_gt_zero = len(fdist_bgs)
+
+# Discount value.
+D = 0.75
+
+# Modify the bigram counts by subtracting 0.75 (Refer coursera slides by manning
+# on absolute discounting).
+for k, v in fdist_bgs.items():
+    fdist_bgs[k] = max(v - D, 0)
+
+P_continuation = {}
+
+temp_continuation = {}
+for (_, w), c in fdist_bgs.items():
+    if c > 0:
+        temp_continuation[w] = temp_continuation.get(w, 0) + 1
+
+# Continuation probability (P_continuation).
+for k, v in fdist_ugs.items():
+    if k == constants.PAD_SYMBOL:
+        continue
+    P_continuation[k] = temp_continuation.get(k, 0) * 1.0 / total_bgs_with_frequency_gt_zero
+
+temp_prob = 0
+for k, v in P_continuation.items():
+    if UNKNOWN_BOTS.has_key(k):
+        temp_prob += v
+
+for k, v in P_continuation.items():
+    if UNKNOWN_BOTS.has_key(k):
+        P_continuation[k] = temp_prob
+
+
+temp_coefficient = {}
+for (w, _), c in fdist_bgs.items():
+    if c > 0:
+        temp_coefficient[w] = temp_coefficient.get(w, 0) + 1
+
+# Interpolation co-efficient.(lambda_coefficient).
+lambda_coefficient = {}
+for (w, _), v in fdist_bgs.items():
+    lambda_coefficient[w] = D * temp_coefficient.get(w, 0) * 1.0 / fdist_ugs[w]
+
+
+
+probs_prev = {}
+for sample in all_bgs:
     # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_1>.
-    probs[sample] = count / float(fdist_ugs.get(sample[0]))
+    probs_prev[sample] = (fdist_bgs.get(sample, 0.0) / float(fdist_ugs.get(sample[0]))) + (lambda_coefficient.get(sample[0], 0.0) * P_continuation.get(sample[1], 0.0))
 
 
 with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'w') as fptr:
-    fptr.write(cPickle.dumps(probs))
+    fptr.write(cPickle.dumps(probs_prev))
 
-probs = {}
+
+
+probs_next = {}
 for sample, count in fdist_bgs.items():
-    # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_1>.
-    probs[sample] = count / float(fdist_ugs.get(sample[1]))
+    # [(<bag_of_tag_1>, <bag_of_tag_2>)] = Probability of (<bag_of_tag_1>, <bag_of_tag_2>) given <bag_of_tag_2>.
+    probs_next[sample] = count / float(fdist_ugs.get(sample[1]))
 
 
 with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'w') as fptr:
-    fptr.write(cPickle.dumps(probs))
+    fptr.write(cPickle.dumps(probs_next))

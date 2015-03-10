@@ -37,23 +37,62 @@ class BestSequence(lib.Singleton):
 #                 self._bit_len_dict[filename.split('.')[0]] = (
 #                     cPickle.loads(rfptr.read()))
 
-        with open(constants.DATA_PATH % 'ugram.probs', 'r') as rfptr:
-            self.ugram_pb = cPickle.loads(rfptr.read())  # For Data Structure refer calculate_unigram_probabilities.py.
+#         with open(constants.DATA_PATH % 'ugram.probs', 'r') as rfptr:
+#             self.ugram_pb = cPickle.loads(rfptr.read())  # For Data Structure refer calculate_unigram_probabilities.py.
 
         with open(constants.DATA_PATH % 'bigram.probs', 'r') as rfptr:
             self.bigram_pb = cPickle.loads(rfptr.read())  # For Data Structure refer calculate_bigram_probabilities.py.
 
-#         with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
-#             self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#   
-#         with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'r') as fptr:
-#             self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#   
-#         with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'r') as fptr:
-#             self.bag_of_tag_prob_prev = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
-#   
-#         with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'r') as fptr:
-#             self.bag_of_tag_prob_next = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+        with open(constants.DATA_PATH % 'bag_of_tags_by_word.huffman', 'r') as fptr:
+            self.bag_of_tags_by_word = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+    
+        with open(constants.DATA_PATH % 'word_prob_per_bag_of_tag.hufman', 'r') as fptr:
+            self.word_freq_per_bag_of_tag = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+    
+        with open(constants.DATA_PATH % 'bag_of_tag_prev.prob', 'r') as fptr:
+            self.bag_of_tag_prob_prev = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+    
+        with open(constants.DATA_PATH % 'bag_of_tag_next.prob', 'r') as fptr:
+            self.bag_of_tag_prob_next = cPickle.loads(fptr.read())  # For Data Structure refer generate_hmm.py.
+
+
+    def get_bs_hmm_g (self, error_array, error_pb):
+        """Get the best sequence from the hmm using greedy approach."""
+        prev_state = constants.PAD_SYMBOL
+        decoded_array = []
+
+        dis = 2
+        for bit_stream in error_array:
+            possible_words = set(lib.get_possible_words(bit_stream, dis))
+            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+            possible_words = actual_words.intersection(possible_words)
+
+            curr_state = None
+            max_prob = 0
+            for x in possible_words:
+                bot = self.bag_of_tags_by_word.get(x, ())
+                if not bot: continue
+
+                transition = self.bag_of_tag_prob_prev.get((
+                        prev_state, bot), 0.0)
+                emission = self.word_freq_per_bag_of_tag[bot][x]
+
+                dis_calc = lib.hamming_distance(bit_stream, x)
+
+                flip_pb = math.pow(error_pb, dis_calc)
+
+                non_flip_pb = math.pow((1.0 - error_pb), (len(bit_stream) - dis_calc))
+
+                prob = transition * emission * flip_pb * non_flip_pb
+
+                if prob >= max_prob:
+                    max_prob = prob
+                    curr_state = (x, bot)
+            print curr_state[0]
+            decoded_array.append(curr_state[0])
+            prev_state = curr_state[1]
+
+        return decoded_array
 
     # Unigram frequencies
     def get_best_sequence_ug(self, error_array, error_pb):
@@ -119,7 +158,7 @@ class BestSequence(lib.Singleton):
             heap = []
             for x in possible_words:
                 dis = lib.hamming_distance(bit_stream, x)
-                wcount = self.bigram_pb.get((prev_word, x), self.ugram_pb.get(x, 0.0))
+                wcount = self.bigram_pb.get((prev_word, x), 0)
 
                 flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
 
@@ -177,7 +216,7 @@ class BestSequence(lib.Singleton):
             for prev_word, (prob, path) in prob_list.items():
                 for x in possible_words:
                     dis = lib.hamming_distance(bit_stream, x)
-                    wcount = self.bigram_pb.get((prev_word, x), self.ugram_pb.get(x, 0.0))
+                    wcount = self.bigram_pb.get((prev_word, x), 0)
 
                     flip_pb = BestSequence.MATH_POW.get((error_pb, dis))
 
@@ -199,8 +238,8 @@ class BestSequence(lib.Singleton):
                              (len(bit_stream) - dis))] = non_flip_pb
 
                     if product == None:
-                        if wcount == 0.0:
-                            wcount = 0.00001  # add a bias.
+#                         if wcount == 0.0:
+#                             wcount = 0.00001  # add a bias.
                         product = flip_pb * non_flip_pb * wcount * prob
                         BestSequence.PRODUCT[
                             (flip_pb, non_flip_pb, wcount, prob)] = product
@@ -239,6 +278,12 @@ class BestSequence(lib.Singleton):
             actual_words = set(self._bit_len_dict[str(len(bit_stream))])
             possible_words = actual_words.intersection(possible_words)
 
+            print '========================================================'
+            print prev_states
+            print possible_words
+            print prob_hmm_a
+            print '========================================================'
+
             for x in possible_words:
                 bot = self.bag_of_tags_by_word.get(x, ())
                 curr_state = (x, bot)
@@ -249,14 +294,16 @@ class BestSequence(lib.Singleton):
                 for prev_state in prev_states:  # option for parallelism.
                     transition = self.bag_of_tag_prob_prev.get((
                         prev_state[1], curr_state[1]), 0.0)
-                    emission = self.word_freq_per_bag_of_tag.get(
-                        curr_state[1], {}).get(curr_state[0], 0)
-                    state_prob = BestSequence.PRODUCT.get((transition,
-                                                           emission))
-                    if state_prob == None:
-                        state_prob = transition * emission
-                        BestSequence.PRODUCT[(transition, emission)] = (
-                            state_prob)
+#                     emission = self.word_freq_per_bag_of_tag.get(
+#                         curr_state[1], {}).get(curr_state[0], 0)
+                    emission = 1
+                    state_prob = transition * emission
+#                     state_prob = BestSequence.PRODUCT.get((transition,
+#                                                            emission))
+#                     if state_prob == None:
+#                         state_prob = transition * emission
+#                         BestSequence.PRODUCT[(transition, emission)] = (
+#                             state_prob)
 
                     prob_hmm_a[(prev_state,
                                 curr_state, pos, bit_stream)] = state_prob

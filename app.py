@@ -28,7 +28,7 @@ class app (object):
         now = time.time()
         other = 0.0
         no_error = 0
-#         sentences = sentences[:1000]
+        sentences = sentences[835:836]
         for val in sentences:
 #         for _ in range(1):
 #             val = 'this is a test sentence to the test the program'
@@ -64,7 +64,9 @@ class app (object):
     @staticmethod
     def decode(ht, bs, error_array, val, error_pb, correctq, errorq):
         decoded_array = []
-        correct_array = bs.get_best_sequence_dp(error_array, error_pb)
+#         print error_array
+        correct_array = bs.get_bs_hmm_g(error_array, error_pb)
+#         print correct_array
         for word in correct_array:
             decoded_array.append(ht.decode(word))
 
