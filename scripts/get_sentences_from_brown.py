@@ -3,6 +3,7 @@
 __author__ = 'Partha Baruah (parthabb@gmail.com)'
 
 import json
+import random
 import re
 
 import lib
@@ -21,8 +22,18 @@ for sents in brown.sents(categories=brown.categories()):
 #
 ###############################################################################
 
-test_data = sentences[:len(sentences) / 3]
-train_data = sentences[len(sentences) / 3:]
+total_sentences = len(sentences)
+test_sentence_indices = random.sample(range(total_sentences),
+                                      total_sentences / 3)
+
+test_sentence_indices.sort()
+test_sentence_indices.reverse()
+
+test_data = []
+for x in test_sentence_indices:
+    test_data.append(sentences.pop(x))
+
+train_data = sentences
 
 with open(constants.DATA_PATH % 'brown.sentences', 'w') as wfptr:
     wfptr.write(json.dumps(train_data))

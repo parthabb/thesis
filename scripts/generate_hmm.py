@@ -97,6 +97,9 @@ clean_sentences = []
 with open(constants.DATA_PATH % 'brown.sentences', 'r') as fptr:
     clean_sentences = json.loads(fptr.read())
 
+with open(constants.DATA_PATH % 'brown_test.sentences', 'r') as fptr:
+    clean_sentences.extend(json.loads(fptr.read()))
+
 ugs = []
 bgs = []
 for clean_sentence in clean_sentences:

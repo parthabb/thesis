@@ -18,6 +18,7 @@ class BestSequence(lib.Singleton):
     PRODUCT = {}
 
     def __init__(self, ht):
+        self.ht = ht
         rfptr = open(constants.DATA_PATH % '/words.count', 'r')
         word_counts = json.loads(rfptr.read())
         rfptr.close()
@@ -62,35 +63,38 @@ class BestSequence(lib.Singleton):
         decoded_array = []
 
         dis = 2
-        for bit_stream in error_array:
-            possible_words = set(lib.get_possible_words(bit_stream, dis))
-            actual_words = set(self._bit_len_dict[str(len(bit_stream))])
-            possible_words = actual_words.intersection(possible_words)
-
-            curr_state = None
-            max_prob = 0
-            for x in possible_words:
-                bot = self.bag_of_tags_by_word.get(x, ())
-                if not bot: continue
-
-                transition = self.bag_of_tag_prob_prev.get((
-                        prev_state, bot), 0.0)
-                emission = self.word_freq_per_bag_of_tag[bot][x]
-
-                dis_calc = lib.hamming_distance(bit_stream, x)
-
-                flip_pb = math.pow(error_pb, dis_calc)
-
-                non_flip_pb = math.pow((1.0 - error_pb), (len(bit_stream) - dis_calc))
-
-                prob = transition * emission * flip_pb * non_flip_pb
-
-                if prob >= max_prob:
-                    max_prob = prob
-                    curr_state = (x, bot)
-            print curr_state[0]
-            decoded_array.append(curr_state[0])
-            prev_state = curr_state[1]
+        try:
+            for bit_stream in error_array:
+                possible_words = set(lib.get_possible_words(bit_stream, dis))
+                actual_words = set(self._bit_len_dict[str(len(bit_stream))])
+                possible_words = actual_words.intersection(possible_words)
+    
+                curr_state = None
+                max_prob = 0
+                for x in possible_words:
+                    bot = self.bag_of_tags_by_word.get(x, ())
+                    if not bot:
+                        continue
+    
+                    transition = self.bag_of_tag_prob_prev.get((
+                            prev_state, bot), 0.0)
+                    emission = self.word_freq_per_bag_of_tag[bot][x]
+    
+                    dis_calc = lib.hamming_distance(bit_stream, x)
+    
+                    flip_pb = math.pow(error_pb, dis_calc)
+    
+                    non_flip_pb = math.pow((1.0 - error_pb), (len(bit_stream) - dis_calc))
+    
+                    prob = transition * emission * flip_pb * non_flip_pb
+    
+                    if prob >= max_prob:
+                        max_prob = prob
+                        curr_state = (x, bot)
+                decoded_array.append(curr_state[0])
+                prev_state = curr_state[1]
+        except TypeError:
+            decoded_array.extend(error_array[len(decoded_array):]);
 
         return decoded_array
 

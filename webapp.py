@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template
 from flask import request
 
+import lib
 from lib import weblib
 app = Flask(__name__)
 
@@ -23,6 +24,10 @@ def correct():
                            results=results,
                            ber=request.form['ber'],
                            test_data=request.form['test_data'])
+
+@app.route('/word/<word>')
+def word_count(word):
+    return lib.get_word_count(word)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

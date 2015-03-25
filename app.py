@@ -28,7 +28,9 @@ class app (object):
         now = time.time()
         other = 0.0
         no_error = 0
-        sentences = sentences[835:836]
+        sentences = sentences[:100]
+#         sentences = ['his eyes had the same dreadful rigid stare as dr grimesby roylotts when he was found before his open safe wearing the speckled band',
+#                      'the doors of the d train slid shut and as i dropped into a seat and exhaling looked up across the aisle the whole aviary in my head burst into song']
         for val in sentences:
 #         for _ in range(1):
 #             val = 'this is a test sentence to the test the program'
@@ -75,13 +77,13 @@ class app (object):
         if val.lower() == decoded_str:
             correctq.append(1)
         else:
-#             print '============================================================'
-#             print val.lower()
-#             print '+++++++++++++++++++++++++++++++++'
-#             print ' '.join(map(ht.decode, error_array))
-#             print '+++++++++++++++++++++++++++++++++'
-#             print decoded_str
-#             print '============================================================'
+            print '============================================================'
+            print val.lower()
+            print '+++++++++++++++++++++++++++++++++'
+            print ' '.join(map(ht.decode, error_array))
+            print '+++++++++++++++++++++++++++++++++'
+            print decoded_str
+            print '============================================================'
             errorq.append(1)
 
 

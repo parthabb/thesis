@@ -1,25 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
-<form method='post' action='correct'>
-  <div>
-    <label for='test_data'>Enter the test data.</label>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+      <form method='post' action='correct'>
+			  <div class="form-group" >
+          <label for='test_data'>Enter the test data.</label>
+          <textarea name='test_data' class="form-control" id='test_data'>{% if test_data %}{{ test_data }}{% endif %}</textarea>
+			  </div>
+			  <div class="form-group">
+			    <label for='ber'>Bit Error Rate</label>
+			    <input type='text' name='ber' class="form-control" id='ber' value="{% if ber %}{{ ber }}{% endif %}"/>
+			  </div>
+			  <button type="submit" class="btn btn-default">Submit</button>
+			</form>
+    </div>
+    <div class="col-sm-6">
+      <form>
+        <div class="form-group">
+          <label for="word">Enter Word</label>
+          <input type="text" class="form-control" id="word">
+        </div>
+        <button type="submit" class="btn btn-default">Get Word Count</button>
+        <div class="form-group">
+          <label for="word-wount">Enter Word</label>
+          <label id="word-count"></label>
+        </div>
+      </form>
+    </div>
   </div>
-  <div>
-    <textarea name='test_data' rows=10 cols=100>{% if test_data %}{{ test_data }}{% endif %}</textarea>
+  <div class="row">
+    {% if results %}
+      <hr></hr>
+      {% include 'results.html' %}
+    {% endif %}
   </div>
-  <div>
-    <label for='ber'>Bit Error Rate</label>
-  </div>
-  <div>
-    <input type='text' name='ber' value="{% if ber %}{{ ber }}{% endif %}"/>
-  </div>
-  <div>
-    <button type='submit'>Submit</button>
-  </div>
-</form>
-{% if results %}
-<hr></hr>
-{% include 'results.html' %}
-{% endif %}
+</div>
+<script>
+$.ajax({
+  url: "",
+  
+}).done(function( data ) {
+  if ( console && console.log ) {
+    console.log( "Sample of data:", data.slice( 0, 100 ) );
+  }
+});
+</script>
 {% endblock %}
 
