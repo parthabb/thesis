@@ -7,6 +7,33 @@ import time
 import lib
 from lib import best_sequence
 from lib import huffman_tree
+from lib import words
+
+class WebLib(lib.Singleton):
+    """Weblib class to handle all methods related to web server view."""
+    def __init__(self):
+        self.ht = huffman_tree.HuffmanTree()
+        self.words = words.Words()
+
+    def get_word_probability(self, word):
+        """Get the count of that word."""
+        return self.words._word_probability.get(word, 0)
+
+    def get_encoded_word(self, word):
+        return self.ht.encode(word)
+
+    def get_probable_words(self, word):
+        now = time.time()
+        pwords = self.words.get_most_probable_words(word)
+        time_taken = time.time() - now
+        decoded_words = []
+        for dis, temp in pwords.items():
+            for w in temp:
+                decoded_words.append(self.ht.decode(w))
+            pwords[dis] = decoded_words
+            decoded_words = []
+        return pwords, time_taken
+
 
 def initialize ():
     best_sequence.BestSequence(huffman_tree.HuffmanTree())

@@ -1,6 +1,5 @@
 """Calculate the unigram probabilities for the words."""
 
-import cPickle
 import json
 
 import nltk
@@ -40,4 +39,4 @@ for sample in fdist_ug.keys():
 ###############################################################################
 
 with open(constants.DATA_PATH % 'ugram.probs', 'w') as wfptr:
-    wfptr.write(cPickle.dumps(prob))
+    wfptr.write(json.dumps(prob))

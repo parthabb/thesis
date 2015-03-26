@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import jsonify
 from flask import render_template
 from flask import request
 
@@ -8,7 +9,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    weblib.initialize()
+#     weblib.initialize()
     return render_template('home.html')
 
 @app.route('/correct', methods=['POST'])
@@ -25,9 +26,22 @@ def correct():
                            ber=request.form['ber'],
                            test_data=request.form['test_data'])
 
+
 @app.route('/word/<word>')
 def word_count(word):
-    return lib.get_word_count(word)
+    wl = weblib.WebLib()
+    orig_word = word
+    if not word.isdigit():
+        word = wl.ht.encode(word)
+    pwords, time_taken = wl.get_probable_words(word)
+    result = {
+        'word': orig_word,
+        'hc': word,
+        'pb': wl.get_word_probability(word),
+        'probable_words': pwords,
+        'time': time_taken
+    }
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

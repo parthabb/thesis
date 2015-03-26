@@ -16,17 +16,46 @@
 			</form>
     </div>
     <div class="col-sm-6">
-      <form>
-        <div class="form-group">
-          <label for="word">Enter Word</label>
-          <input type="text" class="form-control" id="word">
+       <div class="form-group">
+         <label for="word">Enter Word/Bit Stream</label>
+         <input type="text" class="form-control" id="word">
+       </div>
+       <div class="form-group">
+         <label for="word-prob">Word Probability</label>
+         <input type="text" class="form-control" id="word-prob">
+       </div>
+       <div class="form-group">
+         <label for="word-code">Word Huffman Code</label>
+         <input type="text" class="form-control" id="word-code">
+       </div>
+       <div class="form-group">
+         <label for="time">Time Taken</label>
+         <input type="text" class="form-control" id="time">
+       </div>
+       <div class="form-group">
+	       <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" style="display: none;">
+			   </div>
+			 <div>
+       <div class="form-group">
+          <button class="btn btn-default" id="word-analyse">Analyse word</button>
+       </div>
+       <div id="accordion-filler" style="display:none">
+          <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading#DIS">
+              <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse#DIS" aria-expanded="true" aria-controls="collapse#DIS">
+                  #DIS
+                </a>
+              </h4>
+            </div>
+            <div id="collapse#DIS" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading#DIS">
+              <div class="panel-body">
+                #WORDS
+              </div>
+            </div>
+          </div>
         </div>
-        <button type="submit" class="btn btn-default">Get Word Count</button>
-        <div class="form-group">
-          <label for="word-wount">Enter Word</label>
-          <label id="word-count"></label>
-        </div>
-      </form>
+       </div>
     </div>
   </div>
   <div class="row">
@@ -36,15 +65,25 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+{% block script %}
 <script>
-$.ajax({
-  url: "",
-  
-}).done(function( data ) {
-  if ( console && console.log ) {
-    console.log( "Sample of data:", data.slice( 0, 100 ) );
-  }
-});
+  $('#word-analyse').click(function() {
+     var url = $SCRIPT_ROOT + '/word/' + $('input#word').val();
+      $.getJSON(url, {}, function(data) {
+        $('#word-prob').val(data.pb);
+        $('#word-code').val(data.hc);
+        $('#time').val(data.time);
+        var html = $('#accordion-filler').html();
+        var htmlstr = []
+        for (var dis in data.probable_words) {
+          htmlstr.push(html.replace(/#DIS/g, dis).replace(/#WORDS/g, data.probable_words[dis].join(', ')))
+        }
+        $('#accordion').html(htmlstr.join(''))
+        $('#accordion').css('display', 'inline');
+      });
+      return false;
+    });
 </script>
 {% endblock %}
 

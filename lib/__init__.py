@@ -101,9 +101,11 @@ def filter_by_hamming_distance(bitstream):
 def get_possible_words (bit_stream, dis, index=None, dp=None):
     """Get all possible words which are dis bit-flips away from bit_stream."""
     # Implement in Dynamic programming.
-    possible_words = [bit_stream]
-    if dis <= 0 or len(bit_stream) == 0:
-        return possible_words
+    if len(bit_stream) == 0:
+        return ['']
+    if dis <= 0:
+        return [bit_stream]
+    possible_words = []
     bit = '1'
     if bit_stream[0] == '1':
         bit = '0'

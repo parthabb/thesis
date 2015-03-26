@@ -14,6 +14,9 @@ class CreateHuffmanCode(object):
             data = rfptr.read().split('. ')
         self.char_counts = {}
         for sentence in data:
+            sentence = sentence.lower()
+            if sentence.endswith('.'):
+                sentence = sentence[:-1]
             self._count_characters(sentence.lower())
         self._hc = self.generate_huffman_code(self.char_counts)
 
