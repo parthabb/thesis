@@ -3,33 +3,44 @@
 __author__ = 'Partha Baruah (parthabb@gmail.com)'
 
 import cPickle
-import json
-import marisa_trie
+import os
 
 from lib import constants
-from lib import huffman_tree
+from lib import node
 
 
-def create_huffman():
-    """Create their Huffman codes for words in wsd_paper_1_imp/senses."""
-    huffman_code_lengths = {}
-    ht = huffman_tree.HuffmanTree()
-    with open(constants.DATA_PATH % 'words.count', 'r') as rfptr:
-        all_words = json.loads(rfptr.read())
-        for word, _ in all_words.iteritems():
-            if word.isdigit():
-                continue
-            encoded_word = ht.encode(word)
-            len_encoded_word = len(encoded_word)
-            huffman_code_lengths[len_encoded_word] = huffman_code_lengths.get(
-                len_encoded_word, {})
-            huffman_code_lengths[len_encoded_word][
-                encoded_word.decode('UTF-8')] = bytes(str(word))
+def build_tries(all_words):
+    """Read all words from the *.code_length and generate tries."""
+    root = node.Node(True)
+    for word in all_words:
+        prev = root
+        curr = None
+        for char in word:
+            if (char == '0'):
+                curr = prev.left
+                if not curr:
+                    prev.left = node.Node()
+                    curr = prev.left
+            else:
+                curr = prev.right
+                if not curr:
+                    prev.right = node.Node()
+                    curr = prev.right
+            prev = curr
+        curr.is_leaf = True
+    return root
 
-    for k, v in huffman_code_lengths.iteritems():
-        trie = marisa_trie.BytesTrie(zip(v.keys(), v.values()))
-        with open(constants.DATA_PATH % ('%s.tries' % k), 'w') as wfptr:
-            wfptr.write(cPickle.dumps(trie))
 
+if __name__ == '__main__':
+    for filename in os.listdir(constants.DATA_PATH % ''):
+        if not filename.endswith('.code_length'): 
+            continue
+        all_words = []
+        print filename
+        with open(constants.DATA_PATH % ('/%s' % filename), 'r') as rfptr:
+            all_words.extend(rfptr.read().split(','))
 
-create_huffman()
+        root = build_tries(all_words)
+
+        with open(constants.DATA_PATH % ('%s.trie' % filename.split('.')[0]), 'w') as wfptr:
+            wfptr.write(cPickle.dumps(root))

@@ -24,7 +24,7 @@ class WebLib(lib.Singleton):
 
     def get_probable_words(self, word):
         now = time.time()
-        pwords = self.words.get_most_probable_words(word)
+        pwords = self.words.get_most_probable_words_through_setops(word)
         time_taken = time.time() - now
         decoded_words = []
         for dis, temp in pwords.items():

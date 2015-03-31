@@ -115,4 +115,8 @@ def get_possible_words (bit_stream, dis, index=None, dp=None):
     words = get_possible_words(bit_stream[1:], dis)  # don't flip current bit.
     for word in words:
         possible_words.append(bit_stream[0] + word)
+    try:
+        possible_words.remove(bit_stream)
+    except ValueError:
+        pass
     return possible_words
