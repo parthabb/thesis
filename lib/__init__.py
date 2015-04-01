@@ -9,6 +9,8 @@ import string
 
 from nltk import probability
 
+from lib import node
+
 
 class Singleton (object):
     """Singleton super class"""
@@ -120,3 +122,25 @@ def get_possible_words (bit_stream, dis, index=None, dp=None):
     except ValueError:
         pass
     return possible_words
+
+
+def build_tries(all_words):
+    """Read all words from the *.code_length and generate tries."""
+    root = node.Node(True)
+    for word in all_words:
+        prev = root
+        curr = None
+        for char in word:
+            if (char == '0'):
+                curr = prev.left
+                if not curr:
+                    prev.left = node.Node()
+                    curr = prev.left
+            else:
+                curr = prev.right
+                if not curr:
+                    prev.right = node.Node()
+                    curr = prev.right
+            prev = curr
+        curr.is_leaf = True
+    return root

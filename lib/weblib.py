@@ -23,16 +23,27 @@ class WebLib(lib.Singleton):
         return self.ht.encode(word)
 
     def get_probable_words(self, word):
+#         now = time.time()
+#         pwords_m = self.words.get_most_probable_words_through_setops(word)
+#         time_taken = time.time() - now
+#         decoded_words = []
+#         for dis, temp in pwords_m.items():
+#             for w in temp:
+#                 decoded_words.append(self.ht.decode(w))
+#             pwords_m[dis] = decoded_words
+#             decoded_words = []
+
         now = time.time()
-        pwords = self.words.get_most_probable_words_through_setops(word)
+        pwords_m = self.words.get_most_probable_words_through_trie(word)
         time_taken = time.time() - now
         decoded_words = []
-        for dis, temp in pwords.items():
+        for dis, temp in pwords_m.items():
             for w in temp:
                 decoded_words.append(self.ht.decode(w))
-            pwords[dis] = decoded_words
+            pwords_m[dis] = decoded_words
             decoded_words = []
-        return pwords, time_taken
+
+        return pwords_m, time_taken
 
 
 def initialize ():
