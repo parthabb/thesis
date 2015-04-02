@@ -12,6 +12,9 @@ sentences = []
 with open(constants.DATA_PATH % 'brown.sentences', 'r') as rfptr:
     sentences.extend(json.loads(rfptr.read()))
 
+with open(constants.DATA_PATH % 'brown_test.sentences', 'r') as rfptr:
+    sentences.extend(json.loads(rfptr.read()))
+
 ugs = []
 
 for sentence in sentences:

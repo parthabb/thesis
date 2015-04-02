@@ -11,7 +11,7 @@ from lib import huffman_tree
 
 class Words(lib.Singleton):
     """Class that handles all processing of words."""
-    def __init__(self, Pb=math.e):
+    def __init__(self, Pb=0.01):
         words = self.read_words_from_file()
         self._encoded_words_by_length = self.get_encoded_words()
         self._encoded_tries_by_length = self.get_encoded_tries()
@@ -103,8 +103,8 @@ class Words(lib.Singleton):
         probable_words = {}
         isword, _, _ = self._trie_util(trie, error_word, 0)
         if isword:
-            probable_words.update({0: [error_word]})
-#             probable_words.update({0: [(error_word, self._get_word_probability(error_word, 0))]})
+#             probable_words.update({0: [error_word]})
+            probable_words.update({0: [(error_word, self._get_word_probability(error_word, 0))]})
         bit_flip_list = [(trie, '', error_word)]
         for n in range(5):
             temp_bit_flip_list = []
@@ -123,8 +123,8 @@ class Words(lib.Singleton):
                     valid_word = prev + temp
                     if isword:
                         words_list = probable_words.get(n + 1, set())
-                        words_list.add(valid_word)
-#                         words_list.add((valid_word, self._get_word_probability(valid_word, n + 1)))
+#                         words_list.add(valid_word)
+                        words_list.add((valid_word, self._get_word_probability(valid_word, n + 1)))
                         probable_words[n + 1] = words_list
                     if haspath:
                         temp_bit_flip_list.append((next_node, prev + temp[:m + 1], temp[m + 1:]))

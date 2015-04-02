@@ -38,8 +38,8 @@ class WebLib(lib.Singleton):
         time_taken = time.time() - now
         decoded_words = []
         for dis, temp in pwords_m.items():
-            for w in temp:
-                decoded_words.append(self.ht.decode(w))
+            for (w, pb) in temp:
+                decoded_words.append((self.ht.decode(w), pb))
             pwords_m[dis] = decoded_words
             decoded_words = []
 
